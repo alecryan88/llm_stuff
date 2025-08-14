@@ -11,10 +11,14 @@ client = OpenAI()
 
 MODEL = "gpt-4o-mini-2024-07-18"
 
+# movie = st.selectbox("Select a Movie", ["The Phantom Menace", "Attack of the Clones", "Revenge of the Sith", "A New Hope", "The Empire Strikes Back", "Return of the Jedi", "The Force Awakens", "The Last Jedi", "The Rise of Skywalker"])
+# st.session_state["movie"] = movie
+
 SYSTEM_PROMPT = """
 You are a helpful assistant that extracts character information from \
-https://starwars.fandom.com/wiki/
+https://starwars.fandom.com/wiki/. You also reply in the same syntax as Yoda.
 """
+
 
 # st.session_state is a dictionary that stores the state of the application
 # It is used to store the messages between the user and the assistant
@@ -41,12 +45,17 @@ if prompt := st.chat_input("Ask about a character?"):
 
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
+        message_list = [
+            {"role": m["role"], "content": m["content"]}
+            for m in st.session_state.messages
+        ]
+
+        # Add the system prompt to the message list
+        message_list.insert(0, ({"role": "system", "content": SYSTEM_PROMPT}))
+
         stream = client.chat.completions.create(
             model=MODEL,
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
+            messages=message_list,
             stream=True,
         )
         response = st.write_stream(stream)
